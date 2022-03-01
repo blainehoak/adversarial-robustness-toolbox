@@ -59,6 +59,7 @@ class DeepFool(EvasionAttack):
     def __init__(
         self,
         classifier: "CLASSIFIER_CLASS_LOSS_GRADIENTS_TYPE",
+        expobj,
         max_iter: int = 100,
         epsilon: float = 1e-6,
         nb_grads: int = 10,
@@ -82,6 +83,7 @@ class DeepFool(EvasionAttack):
         self.nb_grads = nb_grads
         self.batch_size = batch_size
         self.verbose = verbose
+        self.expobj = expobj
         self._check_params()
         if self.estimator.clip_values is None:
             logger.warning(
@@ -182,6 +184,7 @@ class DeepFool(EvasionAttack):
                     batch[active_indices] += r_var[active_indices]
 
                 # Recompute prediction for new x
+                self.expobj.write_data(batch, current_step)
                 f_batch = self.estimator.predict(batch)
                 fk_i_hat = np.argmax(f_batch, axis=1)
 
