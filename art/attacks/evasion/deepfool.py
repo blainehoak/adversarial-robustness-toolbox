@@ -168,9 +168,17 @@ class DeepFool(EvasionAttack):
                     )
                     + tol
                 )
-                r_var = absolute1 / pow1
-                r_var = r_var.reshape((-1,) + (1,) * (len(x.shape) - 1))
-                r_var = r_var * grad_diff[np.arange(len(grad_diff)), l_var]
+                r_var = (
+                    (absolute1 / np.linalg.norm(draddiff, axis=1))
+                    * pow(
+                        abs(grad_diff[np.arange(len(grad_diff)), l_var] / np.linalg.norm(draddiff, axis=1)),
+                        self.expobj.lambdav,
+                    )
+                    * np.sign(grad_diff[np.arange(len(grad_diff)), l_var])
+                )
+                # r_var = absolute1 / pow1
+                # r_var = r_var.reshape((-1,) + (1,) * (len(x.shape) - 1))
+                # r_var = r_var * grad_diff[np.arange(len(grad_diff)), l_var]
 
                 # Add perturbation and clip result
                 if self.estimator.clip_values is not None:
