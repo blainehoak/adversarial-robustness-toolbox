@@ -189,12 +189,14 @@ class DeepFool(EvasionAttack):
                 if self.estimator.clip_values is not None:
                     batch[active_indices] = np.clip(
                         batch[active_indices]
-                        + r_var[active_indices] * (self.estimator.clip_values[1] - self.estimator.clip_values[0]),
+                        + (1 + self.epsilon)
+                        * r_var[active_indices]
+                        * (self.estimator.clip_values[1] - self.estimator.clip_values[0]),
                         self.estimator.clip_values[0],
                         self.estimator.clip_values[1],
                     )
                 else:
-                    batch[active_indices] += r_var[active_indices]
+                    batch[active_indices] += (1 + self.epsilon) * r_var[active_indices]
 
                 # Recompute prediction for new x
                 self.expobj.write_data(batch, current_step)
