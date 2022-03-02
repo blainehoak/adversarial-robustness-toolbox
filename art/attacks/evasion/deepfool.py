@@ -23,6 +23,7 @@ This module implements the white-box attack `DeepFool`.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging
+from threading import local
 from typing import Optional, TYPE_CHECKING
 
 import numpy as np
@@ -33,6 +34,8 @@ from art.estimators.estimator import BaseEstimator
 from art.estimators.classification.classifier import ClassGradientsMixin
 from art.attacks.attack import EvasionAttack
 from art.utils import compute_success, is_probability
+
+import code
 
 if TYPE_CHECKING:
     from art.utils import CLASSIFIER_CLASS_LOSS_GRADIENTS_TYPE
@@ -168,13 +171,15 @@ class DeepFool(EvasionAttack):
                     )
                     + tol
                 )
+                # code.interact(local=dict(globals(), **locals()))
+                vec = grad_diff[np.arange(len(grad_diff)), l_var] / (
+                    np.linalg.norm(draddiff, axis=1).reshape((-1,) + (1,) * (len(x.shape) - 1)) + tol
+                )
+
                 r_var = (
-                    (absolute1 / np.linalg.norm(draddiff, axis=1))
-                    * pow(
-                        abs(grad_diff[np.arange(len(grad_diff)), l_var] / np.linalg.norm(draddiff, axis=1)),
-                        self.expobj.lambdav,
-                    )
-                    * np.sign(grad_diff[np.arange(len(grad_diff)), l_var])
+                    (absolute1 / (np.linalg.norm(draddiff, axis=1) + tol)).reshape((-1,) + (1,) * (len(x.shape) - 1))
+                    * pow(abs(vec), self.expobj.lambdav)
+                    * np.sign(vec)
                 )
                 # r_var = absolute1 / pow1
                 # r_var = r_var.reshape((-1,) + (1,) * (len(x.shape) - 1))
